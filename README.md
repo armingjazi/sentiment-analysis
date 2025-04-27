@@ -10,6 +10,8 @@ It combines stock price information, sentiment data, and machine learning techni
 - Extract features and train predictive models
 - Modular structure for data processing, model building, and evaluation
 - Cache data for faster experiments
+- Efficient batching mechanism for scalable data enrichment
+- Intelligent retry mechanism for API rate limits
 - Testing modules for reliability
 
 ## Data Sources
@@ -18,7 +20,6 @@ It combines stock price information, sentiment data, and machine learning techni
 - **Twelve Data**: Stock price data
 
 **Note:** Data from Kaggle and Twelve Data is **not included** in this repository. You will need your own API keys or access credentials to download the data.
-
 
 ## Installation
 
@@ -33,11 +34,11 @@ poetry install
 
 You can run the main tasks via Poetry scripts:
 
-| Command  | Description |
-|----------|-------------|
-| `poetry run label` | Label stock price data |
-| `poetry run clean` | Clean and normalize datasets |
-| `poetry run train` | Train the prediction model |
+| Command                             | Description                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| `poetry run label <starting_batch>` | Label stock price data starting from a specific batch |
+| `poetry run clean`                  | Clean and normalize datasets                          |
+| `poetry run train`                  | Train the prediction model                            |
 
 Alternatively, you can run specific scripts manually:
 
@@ -48,17 +49,45 @@ poetry run python trading_sentiment_analysis/main.py
 ### Step-by-Step Scripts
 
 1. **Download Data**
-    - Run `download_sentiment_data.py` to fetch sentiment datasets.
-    - Use `twelve_data.py` to fetch stock price data.
 
-2. **Label Data**
-    - Run `poetry run label` or use `stock_price_label.py` manually to generate price movement labels.
+   - Run `download_sentiment_data.py` to fetch sentiment datasets.
+   - Use `twelve_data.py` to fetch stock price data.
+
+2. **Label News Data in Batches**
+
+   - News articles are labeled in **batches of 1000** entries.
+   - Start labeling using:
+     ```bash
+     poetry run label <starting_batch>
+     ```
+   - Example:
+     ```bash
+     poetry run label 0
+     ```
+   - Each batch will be processed and saved separately.
 
 3. **Clean and Normalize**
-    - Run `poetry run clean` to preprocess, normalize, and clean the datasets.
+
+   - Run `poetry run clean` to preprocess and prepare datasets for modeling.
 
 4. **Train the Model**
-    - Run `poetry run train` to train the machine learning model based on processed features.
+   - Run `poetry run train` to train the machine learning model based on processed features.
+
+## Batching and Caching
+
+- **Batching Mechanism:**
+
+  - News articles are processed in batches of 1000 items to efficiently manage memory and processing time.
+  - Each batch is saved individually to allow resuming from any batch index in case of interruptions.
+
+- **Caching System:**
+
+  - Stock price data retrieved from external APIs (like Twelve Data) is **cached locally**.
+  - Cached files are reused in future runs to avoid redundant API requests, improving performance and respecting API rate limits.
+  - The cache system automatically saves newly downloaded stock data for future use.
+
+- **Rate Limiting Handling:**
+  - Automatic retry mechanism is included to handle API rate limits, with smart long waits if necessary.
 
 ## Configuration
 
@@ -81,5 +110,4 @@ The main libraries used:
 
 ## Authors
 
-- Armin Jazi 
-
+- Armin Jazi
