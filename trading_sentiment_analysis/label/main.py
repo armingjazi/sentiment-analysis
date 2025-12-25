@@ -21,7 +21,7 @@ def batch_label_news_data(input_data, output_dir, stock_api: StockAPI, batch_sta
         batch_number = start_idx // batch_size
         if batch_number < batch_start:
             continue
-        print(f"Processing batch {batch_number}")
+        print(f"Processing batch {batch_number}/{(total + batch_size - 1) // batch_size}")
         output_path = os.path.join(output_dir, f'news_batch_{batch_number}.csv')
         end_idx = min(start_idx + batch_size, total)
         batch = input_data.iloc[start_idx:end_idx]

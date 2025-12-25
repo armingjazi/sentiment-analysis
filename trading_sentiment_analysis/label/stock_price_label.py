@@ -3,6 +3,10 @@ import pandas as pd
 from datetime import timedelta
 
 from trading_sentiment_analysis.stock_api.stock_api import StockAPI
+from trading_sentiment_analysis.stock_api.twelve_data import CachedSymbolFailureException
+
+# Track which cached failures we've already logged to reduce noise
+_logged_cached_failures = set()
 
 
 def get_stock_movement(ticker, news_date, stock_api: StockAPI, window=1):
@@ -46,8 +50,14 @@ def get_stock_movement(ticker, news_date, stock_api: StockAPI, window=1):
 
         # Get the closest prices before and after news
         try:
-            price_before = float(stock['Close'].loc[:news_dt].iloc[-1])
-            price_after = float(stock['Close'].loc[news_dt:].iloc[0])
+            prices_before = stock['Close'].loc[:news_dt]
+            prices_after = stock['Close'].loc[news_dt:]
+
+            if len(prices_before) == 0 or len(prices_after) == 0:
+                return np.nan
+
+            price_before = float(prices_before.iloc[-1])
+            price_after = float(prices_after.iloc[0])
         except Exception as e:
             print(f"Error processing {ticker} for date {news_date}, {str(e)}")
             print(f"stock {stock}")
@@ -58,6 +68,12 @@ def get_stock_movement(ticker, news_date, stock_api: StockAPI, window=1):
         # Calculate percentage change
         return ((price_after - price_before) / price_before) * 100
 
+    except CachedSymbolFailureException as e:
+        # Only log each cached failure once per run
+        if ticker not in _logged_cached_failures:
+            print(f"Skipping {ticker}: previously returned 404 (will skip silently for remaining occurrences)")
+            _logged_cached_failures.add(ticker)
+        return np.nan
     except Exception as e:
         print(f"Error processing {ticker} for date {news_date}: {str(e)}")
         return np.nan
@@ -85,8 +101,16 @@ def label_news_data(news_df, stock_api: StockAPI, start_idx, threshold=1.0):
     # Process each news item
     for idx in range(len(df)):
         batch_idx = start_idx + idx
+
         # Get price movement
-        change = get_stock_movement(df.at[batch_idx, 'stock'], df.at[batch_idx, 'date'], stock_api)
+        stock_val = df.at[batch_idx, 'stock']
+        date_val = df.at[batch_idx, 'date']
+
+        # Check for data corruption
+        if pd.isna(stock_val) or pd.isna(date_val):
+            continue
+
+        change = get_stock_movement(stock_val, date_val, stock_api)
 
         # Store price change
         df.at[batch_idx, 'price_change'] = change

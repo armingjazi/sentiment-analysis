@@ -11,6 +11,11 @@ class RateLimitException(Exception):
         self.retry_after = retry_after
         super().__init__(message)
 
+class CachedSymbolFailureException(Exception):
+    def __init__(self, symbol):
+        self.symbol = symbol
+        super().__init__(f'Symbol {symbol} previously returned 404 (cached failure)')
+
 def retry_on_rate_limit(long_wait=86400,max_retries_for_long_wait: int =3, max_retries: int = 999999):
     def decorator(func: Callable):
         @wraps(func)
@@ -73,12 +78,26 @@ class TwelveData:
                 from_cache = True
                 return data, from_cache
 
+            # Check if this symbol previously returned 404
+            if self.cache_data.is_failed_symbol(symbol):
+                raise CachedSymbolFailureException(symbol)
+
         url = f'{self.base_url}/time_series?symbol={symbol}&interval=1day&outputsize=5000&apikey={self.api_key}&timezone=utc'
-        data = self.api_request(url)
+
+        try:
+            data = self.api_request(url)
+        except ValueError as e:
+            # Check if this is a 404 error
+            if '404' in str(e) and 'symbol not found' in str(e):
+                # Mark this symbol as failed to prevent future API calls
+                if self.cache_data is not None:
+                    self.cache_data.mark_symbol_as_failed(symbol)
+            # Re-raise the exception
+            raise
 
         df = pd.DataFrame(data['values'])
-        df.loc[:, 'datetime'] = df['datetime'].map(pd.Timestamp)
-        df.set_index('datetime', inplace=True)
+        df.index = pd.DatetimeIndex(pd.to_datetime(df['datetime']))
+        df = df.drop(columns=['datetime'])
         df.rename(columns={'close': 'Close'}, inplace=True)
         df.rename(columns={'open': 'Open'}, inplace=True)
         df.rename(columns={'high': 'High'}, inplace=True)
