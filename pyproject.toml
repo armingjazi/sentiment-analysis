@@ -6,7 +6,7 @@ authors = ["Armin Jazi <a.ghajarjazi@reply.de>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.14"
 pandas = "^2.2.3"
 numpy = "^2.2.1"
 kagglehub = "^0.3.13"
@@ -25,3 +25,4 @@ label = "trading_sentiment_analysis.label.main:main"
 clean = "trading_sentiment_analysis.clean.main:main"
 train = "trading_sentiment_analysis.train.main:main"
 predict = "trading_sentiment_analysis.predict.main:main"
+nltk = "trading_sentiment_analysis.nltk.main:main"

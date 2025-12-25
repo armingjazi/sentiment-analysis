@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--tfidf', action='store_true', help='Use TF-IDF for feature extraction')
     parser.add_argument('--batch_size', type=int, default=1024, help='Batch size for training')
     parser.add_argument('--learning_rate', type=float, default=5e-3, help='Learning rate for training')
-    parser.add_argument('--iterations', type=int, default=1000, help='Number of iterations for training')
+    parser.add_argument('--iterations', type=int, default=2000, help='Number of iterations for training')
     parser.add_argument('--model_file', type=str, default='model_weights.npy', help='File to save the model weights')
     parser.add_argument('--mean_var_file', type=str, default='mean_var.npy', help='File to save the mean and variance for normalization')
     parser.add_argument('--frequencies', type=str, default='frequencies.npy', help='File to save the frequencies')
@@ -98,12 +98,13 @@ def main():
         print("TF-IDF not used, no IDF scores saved.")
     
 
-   
+
     plt.plot(costs)
     plt.xlabel("Epoch")
     plt.ylabel("Cost")
     plt.title("Training Loss")
-    plt.show()
+    plt.savefig("training_loss.png")
+    print("Training loss plot saved to training_loss.png")
 
     
 
