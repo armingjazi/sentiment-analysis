@@ -6,7 +6,10 @@ def download_financial_news_data():
 
 
 
-## main function for script call
-if __name__ == '__main__':
+def main():
     path = download_financial_news_data()
     print("Downloaded financial news data to: ", path)
+
+
+if __name__ == '__main__':
+    main()

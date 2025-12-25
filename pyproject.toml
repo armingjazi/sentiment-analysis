@@ -7,10 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-yfinance = "^0.2.51"
 pandas = "^2.2.3"
 numpy = "^2.2.1"
-kagglehub = "^0.3.6"
+kagglehub = "^0.3.13"
 python-dotenv = "^1.0.1"
 nltk = "^3.9.1"
 matplotlib = "^3.10.1"
@@ -21,6 +20,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
+download = "trading_sentiment_analysis.label.download_sentiment_data:main"
 label = "trading_sentiment_analysis.label.main:main"
 clean = "trading_sentiment_analysis.clean.main:main"
 train = "trading_sentiment_analysis.train.main:main"

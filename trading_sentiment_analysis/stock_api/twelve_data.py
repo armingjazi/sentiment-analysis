@@ -49,13 +49,18 @@ class TwelveData:
         data = response.json()
         # status code check
         if response.status_code != 200:
+            print(f"Failed API request: {data}")
             raise ValueError(f'API request failed with status code {response.status_code}')
         if 'code' in data and data['code'] == 429:
+            print(f"Rate limit exceeded: {data}")
             raise RateLimitException(retry_after=60)
         if 'code' in data and data['code'] == 404:
+            print(f"Symbol not found: {data}")
             raise ValueError(f'API request failed with error code 404, symbol not found')
         if 'code' in data and data['code'] != 200:
+            print(f"API request error: {data}")
             raise ValueError(f'API request failed with error code {data.code}')
+        
         return data
 
     def cache_or_download(self, symbol):
@@ -72,7 +77,7 @@ class TwelveData:
         data = self.api_request(url)
 
         df = pd.DataFrame(data['values'])
-        df['datetime'] = df['datetime'].map(pd.Timestamp)
+        df.loc[:, 'datetime'] = df['datetime'].map(pd.Timestamp)
         df.set_index('datetime', inplace=True)
         df.rename(columns={'close': 'Close'}, inplace=True)
         df.rename(columns={'open': 'Open'}, inplace=True)
