@@ -98,7 +98,6 @@ You can also adapt settings like tickers, date ranges, or data sources directly 
 
 The main libraries used:
 
-- `yfinance`
 - `pandas`
 - `numpy`
 - `nltk`
