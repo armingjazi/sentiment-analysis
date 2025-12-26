@@ -27,13 +27,13 @@ This document organizes implementation tasks by user story priority (P1, P2, P3)
 
 **Tasks**:
 
-- [ ] T001 Create embeddings module directory structure at trading_sentiment_analysis/train/embeddings/
-- [ ] T002 Create __init__.py in trading_sentiment_analysis/train/embeddings/
-- [ ] T003 Create data/embeddings directory for GloVe storage
-- [ ] T004 Download GloVe 6B 100d vectors from Stanford NLP (https://nlp.stanford.edu/data/glove.6B.zip) to data/embeddings/
-- [ ] T005 Extract glove.6B.100d.txt from zip archive to data/embeddings/glove.6B.100d.txt (~350MB)
-- [ ] T006 Verify GloVe file format (101 space-separated values per line: word + 100 dimensions)
-- [ ] T007 Update .gitignore to exclude data/embeddings/*.txt and data/embeddings/*.zip
+- [X] T001 Create embeddings module directory structure at trading_sentiment_analysis/train/embeddings/
+- [X] T002 Create __init__.py in trading_sentiment_analysis/train/embeddings/
+- [X] T003 Create data/embeddings directory for GloVe storage
+- [X] T004 Download GloVe 6B 100d vectors from Stanford NLP (https://nlp.stanford.edu/data/glove.6B.zip) to data/embeddings/
+- [X] T005 Extract glove.6B.100d.txt from zip archive to data/embeddings/glove.6B.100d.txt (~350MB)
+- [X] T006 Verify GloVe file format (101 space-separated values per line: word + 100 dimensions)
+- [X] T007 Update .gitignore to exclude data/embeddings/*.txt and data/embeddings/*.zip
 
 **Verification**:
 - [ ] Directory trading_sentiment_analysis/train/embeddings/ exists

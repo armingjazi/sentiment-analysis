@@ -66,16 +66,13 @@ class FeatureTestCase(unittest.TestCase):
 
     def test_feature_extraction_no_stop_words(self):
         features = extract_features('Stocks fell 100 points on saturday', frequencies={
-            ('Stocks', 1): 1,
+            ('stock', 1): 1,
             ('fell', 0): 1,
-            ('100', 1): 2,
-            ('100', 0): 1,
-            ('points', 1): 2,
-            ('on', 1): 0,
+            ('point', 1): 2,
             ('saturday', 1): 0,
         })
         self.assertEqual(len(features), 1)
         self.assertEqual(features[0].shape, (3,))
         self.assertEqual(features[0][0], 1)
-        self.assertEqual(features[0][1], 2)
-        self.assertEqual(features[0][2], 2)
+        self.assertEqual(features[0][1], 3)
+        self.assertEqual(features[0][2], 1)

@@ -1,5 +1,5 @@
 import numpy as np
-from trading_sentiment_analysis.train.process import process_text_to_words
+from trading_sentiment_analysis.process.text import process_text_to_words
 
 
 def extract_features(headline, frequencies):

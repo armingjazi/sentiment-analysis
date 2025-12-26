@@ -101,12 +101,12 @@ specs/001-word-embeddings-glove/
 
 ```text
 trading_sentiment_analysis/
-├── train/
-│   ├── embeddings/                    # New module (this feature)
+├── embeddings/                    # New module (this feature)
 │   │   ├── __init__.py
 │   │   ├── glove.py                   # GloVeEmbeddings class
 │   │   ├── embedding_feature.py       # EmbeddingFeatureExtractor class
 │   │   └── test_glove.py              # Unit tests for embeddings
+├── train/
 │   ├── feature.py                     # Existing (add extract_features_glove)
 │   ├── model.py                       # Existing (add embedding support)
 │   ├── test_embedding_feature.py      # New tests for embedding features

@@ -1,7 +1,7 @@
 from collections import defaultdict
 import math
 import numpy as np
-from trading_sentiment_analysis.train.process import process_text_to_words
+from trading_sentiment_analysis.process.text import process_text_to_words
 
 
 def build_freqs(texts, ys, word_processor=process_text_to_words):
