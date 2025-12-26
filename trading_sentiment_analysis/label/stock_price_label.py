@@ -17,7 +17,7 @@ def get_stock_movement(ticker, news_date, stock_api: StockAPI, window=1):
     ticker (str): Stock ticker symbol
     news_date (str): Date of news in format YYYY-MM-DD HH:MM:SS
     window (int): Number of trading days to look ahead
-    stock_api (yfinance.Ticker): Stock API object
+    stock_api: Stock API object
 
     Returns:
     float: Percentage price change
@@ -86,7 +86,7 @@ def label_news_data(news_df, stock_api: StockAPI, start_idx, threshold=1.0):
     Parameters:
     news_df (pd.DataFrame): DataFrame with columns 'stock', 'date', 'title'
     threshold (float): Percentage threshold for considering movement significant
-    stock_api (yfinance.Ticker): Stock API object
+    stock_api: Stock API object
 
     Returns:
     pd.DataFrame: Original dataframe with added 'label' and 'price_change' columns

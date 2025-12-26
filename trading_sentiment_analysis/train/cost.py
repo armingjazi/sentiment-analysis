@@ -88,3 +88,37 @@ def batch_gradient_descent(inputs, targets, weights, learning_rate, iterations, 
         print(f"Iteration {epoch + 1} / {iterations} - Cost: {avg_epoch_cost:.6f}")
 
     return costs, new_weights
+
+
+def calculate_metrics(y_true, y_pred_probs, threshold=0.5):
+    """Calculate classification metrics.
+
+    Args:
+        y_true: True labels (numpy array)
+        y_pred_probs: Predicted probabilities (numpy array)
+        threshold: Decision threshold for classification
+
+    Returns:
+        dict: Dictionary with accuracy, precision, recall, f1, and loss
+    """
+    y_pred = (y_pred_probs >= threshold).astype(int).flatten()
+    y_true_flat = y_true.flatten()
+
+    tp = np.sum((y_true_flat == 1) & (y_pred == 1))
+    fp = np.sum((y_true_flat == 0) & (y_pred == 1))
+    fn = np.sum((y_true_flat == 1) & (y_pred == 0))
+    tn = np.sum((y_true_flat == 0) & (y_pred == 0))
+
+    accuracy = (tp + tn) / len(y_true_flat)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+    loss = float(cross_entropy_loss(y_true, y_pred_probs))
+
+    return {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'loss': loss
+    }
