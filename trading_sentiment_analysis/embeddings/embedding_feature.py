@@ -140,6 +140,67 @@ def extract_features_glove_tfidf_batch(
     return features, excluded_indices
 
 
+def extract_features_glove_max(headline: str, glove: GloVeEmbeddings) -> Optional[np.ndarray]:
+    """Extract max pooling embedding feature from headline.
+
+    Takes the maximum activation along each dimension rather than the mean.
+    This preserves the strongest signal from any single word.
+
+    Args:
+        headline: News headline text
+        glove: Loaded GloVe embeddings
+
+    Returns:
+        np.ndarray of shape (1, 100) - max of word embeddings across each dimension
+        None if no words have embeddings (zero-match exclusion)
+    """
+    words = process_text_to_words(headline)
+
+    embeddings = []
+    for word in words:
+        vec = glove.get_vector(word)
+        if vec is not None:
+            embeddings.append(vec)
+
+    if len(embeddings) == 0:
+        return None
+
+    max_vector = np.max(embeddings, axis=0)
+    return max_vector[np.newaxis, :]
+
+
+def extract_features_glove_max_batch(
+    headlines: List[str],
+    glove: GloVeEmbeddings
+) -> Tuple[np.ndarray, List[int]]:
+    """Extract max pooling features for multiple headlines.
+
+    Args:
+        headlines: List of headline strings
+        glove: Loaded GloVe embeddings
+
+    Returns:
+        Tuple of (features, excluded_indices)
+        - features: np.ndarray of shape (N, 100) where N <= len(headlines)
+        - excluded_indices: List of indices of headlines that were excluded
+    """
+    features_list = []
+    excluded_indices = []
+
+    for i, headline in enumerate(headlines):
+        feature = extract_features_glove_max(headline, glove)
+        if feature is not None:
+            features_list.append(feature[0])
+        else:
+            excluded_indices.append(i)
+
+    if len(features_list) == 0:
+        return np.zeros((0, 100), dtype=np.float32), excluded_indices
+
+    features = np.array(features_list, dtype=np.float32)
+    return features, excluded_indices
+
+
 def compute_coverage(
     headline: str,
     glove: GloVeEmbeddings

@@ -66,11 +66,17 @@ class BuildFreqsDocsTestCase(unittest.TestCase):
         ]
         labels = [1, 1, 1]
         expected_freqs = {
+            ('this', 1): 3,
+            ('is', 1): 3,
+            ('a', 1): 1,
             ('test', 1): 3,
             ('another', 1): 2,
             ('yet', 1): 1,
         }
         expected_doc_freqs = {
+            'this': 3,
+            'is': 3,
+            'a': 1,
             'test': 3,
             'another': 2,
             'yet': 1,
@@ -94,13 +100,21 @@ class BuildFreqsDocsTestCase(unittest.TestCase):
         ]
         labels = [1, 0, 1]
         expected_freqs = {
+            ('this', 1): 2,
+            ('this', 0): 1,
+            ('is', 1): 2,
+            ('is', 0): 1,
+            ('a', 1): 1,
             ('test', 1): 2,
-            ('another', 0): 1,
             ('test', 0): 1,
-            ('yet', 1): 1,
             ('another', 1): 1,
+            ('another', 0): 1,
+            ('yet', 1): 1,
         }
         expected_doc_freqs = {
+            'this': 3,
+            'is': 3,
+            'a': 1,
             'test': 3,
             'another': 2,
             'yet': 1,

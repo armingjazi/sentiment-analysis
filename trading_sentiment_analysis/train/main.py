@@ -39,6 +39,7 @@ def main():
     feature_group.add_argument('--tfidf', action='store_true', help='Use TF-IDF for feature extraction')
     feature_group.add_argument('--embeddings', action='store_true', help='Use GloVe embeddings (mean pooling)')
     feature_group.add_argument('--embeddings-tfidf', action='store_true', help='Use GloVe embeddings weighted by TF-IDF')
+    feature_group.add_argument('--embeddings-max', action='store_true', help='Use GloVe embeddings (max pooling)')
 
     parser.add_argument('--glove-path', type=str, default='data/embeddings/glove.6B.100d.txt', help='Path to GloVe embeddings file')
     parser.add_argument('--batch_size', type=int, default=1024, help='Batch size for training')
@@ -133,6 +134,41 @@ def main():
 
         print("\nSaving TF-IDF weighted embedding model...")
         model.save_embeddings_model('embedding_tfidf_model_weights.npy', 'embedding_tfidf_mean_var.npy')
+
+    elif args.embeddings_max:
+        print("=== Training with Max Pooling GloVe Embeddings ===")
+        print(f"Loading GloVe embeddings from {args.glove_path}...")
+
+        glove = GloVeEmbeddings(args.glove_path)
+
+        model = RegressionModel(shape=(100, 1))
+
+        print("Training model...")
+        costs, weights = model.train_with_embeddings_max(
+            train_x, train_y, glove,
+            learning_rate=args.learning_rate,
+            iterations=args.iterations,
+            batch_size=args.batch_size
+        )
+
+        print("Model trained.")
+        print("Evaluating model...")
+
+        test_probs, excluded_indices = model.predict_sentiments_with_embeddings_max(test_x, glove)
+
+        test_y_filtered = np.delete(test_y, excluded_indices)
+
+        metrics = calculate_metrics(test_y_filtered, test_probs)
+
+        print(f"\n=== Test Results (Max Pooling Embeddings) ===")
+        print(f"Accuracy:  {metrics['accuracy'] * 100:.2f}%")
+        print(f"Precision: {metrics['precision']:.4f}")
+        print(f"Recall:    {metrics['recall']:.4f}")
+        print(f"F1 Score:  {metrics['f1']:.4f}")
+        print(f"Loss:      {metrics['loss']:.4f}")
+
+        print("\nSaving max pooling embedding model...")
+        model.save_embeddings_model('embedding_max_model_weights.npy', 'embedding_max_mean_var.npy')
 
     else:
         print("Building frequencies...")

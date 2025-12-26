@@ -7,7 +7,8 @@ from trading_sentiment_analysis.train.normalization import normalize, normalize_
 from trading_sentiment_analysis.embeddings.glove import GloVeEmbeddings
 from trading_sentiment_analysis.embeddings.embedding_feature import (
     extract_features_glove_batch,
-    extract_features_glove_tfidf_batch
+    extract_features_glove_tfidf_batch,
+    extract_features_glove_max_batch
 )
 
 
@@ -254,6 +255,75 @@ class RegressionModel:
             Tuple of (predicted probabilities, excluded indices)
         """
         features, excluded = extract_features_glove_tfidf_batch(headlines, glove, idf_scores)
+
+        if len(excluded) > 0:
+            print(f"Warning: Excluded {len(excluded)} headlines with zero matches during prediction")
+
+        features = normalize_with_mean_var(features, self.mean, self.var)
+
+        predictions = self.predict(features)
+        return predictions, excluded
+
+    def train_with_embeddings_max(
+        self,
+        train_x,
+        train_y,
+        glove: GloVeEmbeddings,
+        learning_rate: float,
+        iterations: int,
+        batch_size: int = 1024
+    ):
+        """Train model using max pooling embedding features.
+
+        Args:
+            train_x: List of headline strings
+            train_y: Labels (numpy array)
+            glove: Loaded GloVe embeddings
+            learning_rate: Learning rate for gradient descent
+            iterations: Number of training iterations
+            batch_size: Batch size for gradient descent
+
+        Returns:
+            (costs, weights): Training costs and final weights
+        """
+        print("Extracting max pooling embedding features from training data...")
+
+        train_input, excluded = extract_features_glove_max_batch(train_x, glove)
+
+        if len(excluded) > 0:
+            print(f"Excluded {len(excluded)} headlines with zero matches ({len(excluded)/len(train_x)*100:.2f}%)")
+            train_y = np.delete(train_y, excluded)
+
+        train_input, self.mean, self.var = normalize(train_input)
+
+        train_target = train_y.reshape(-1, 1)
+
+        print(f"Training input shape: {train_input.shape}")
+        print(f"Training label shape: {train_target.shape}")
+
+        costs, weights = batch_gradient_descent(
+            train_input, train_target, self.weights,
+            learning_rate, iterations, batch_size
+        )
+
+        self.weights = weights
+        return costs, weights
+
+    def predict_sentiments_with_embeddings_max(
+        self,
+        headlines,
+        glove: GloVeEmbeddings
+    ):
+        """Predict sentiments using max pooling embedding features.
+
+        Args:
+            headlines: List of headline strings
+            glove: Loaded GloVe embeddings
+
+        Returns:
+            Tuple of (predicted probabilities, excluded indices)
+        """
+        features, excluded = extract_features_glove_max_batch(headlines, glove)
 
         if len(excluded) > 0:
             print(f"Warning: Excluded {len(excluded)} headlines with zero matches during prediction")

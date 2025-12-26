@@ -8,6 +8,8 @@ from trading_sentiment_analysis.embeddings.embedding_feature import (
     extract_features_glove_batch,
     extract_features_glove_tfidf,
     extract_features_glove_tfidf_batch,
+    extract_features_glove_max,
+    extract_features_glove_max_batch,
     compute_coverage
 )
 
@@ -141,6 +143,47 @@ class EmbeddingFeatureTestCase(unittest.TestCase):
         idf_scores = {'stock': 2.0, 'rose': 1.5, 'market': 1.8}
         headlines = ['stock rose', 'unknown xyzabc', 'market']
         features, excluded = extract_features_glove_tfidf_batch(headlines, self.glove, idf_scores)
+
+        self.assertEqual(features.shape, (2, 100))
+        self.assertEqual(excluded, [1])
+
+    def test_extract_features_max_normal(self):
+        """Test max pooling feature extraction with known words."""
+        features = extract_features_glove_max('Stock prices rose', self.glove)
+
+        self.assertIsNotNone(features)
+        self.assertEqual(features.shape, (1, 100))
+        self.assertEqual(features.dtype, np.float32)
+        self.assertFalse(np.all(features == 0))
+
+    def test_extract_features_max_unknown_words(self):
+        """Test max pooling with all unknown words."""
+        features = extract_features_glove_max('unknown xyzabc', self.glove)
+
+        self.assertIsNone(features)
+
+    def test_extract_features_max_differs_from_mean(self):
+        """Test that max pooling differs from mean pooling."""
+        mean_features = extract_features_glove('stock price', self.glove)
+        max_features = extract_features_glove_max('stock price', self.glove)
+
+        self.assertIsNotNone(mean_features)
+        self.assertIsNotNone(max_features)
+        self.assertFalse(np.allclose(mean_features, max_features))
+
+    def test_extract_features_max_batch(self):
+        """Test batch max pooling extraction."""
+        headlines = ['stock rose', 'price fell', 'market']
+        features, excluded = extract_features_glove_max_batch(headlines, self.glove)
+
+        self.assertEqual(features.shape, (3, 100))
+        self.assertEqual(len(excluded), 0)
+        self.assertEqual(features.dtype, np.float32)
+
+    def test_extract_features_max_batch_with_exclusions(self):
+        """Test batch max pooling with zero-match headlines."""
+        headlines = ['stock rose', 'unknown xyzabc', 'market']
+        features, excluded = extract_features_glove_max_batch(headlines, self.glove)
 
         self.assertEqual(features.shape, (2, 100))
         self.assertEqual(excluded, [1])
