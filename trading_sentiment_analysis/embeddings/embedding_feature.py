@@ -66,6 +66,80 @@ def extract_features_glove_batch(
     return features, excluded_indices
 
 
+def extract_features_glove_tfidf(headline: str, glove: GloVeEmbeddings, idf_scores: dict) -> Optional[np.ndarray]:
+    """Extract TF-IDF weighted embedding feature from headline.
+
+    Instead of simple mean pooling, weight each word embedding by its IDF score.
+    This gives more importance to discriminative words while preserving semantic information.
+
+    Args:
+        headline: News headline text
+        glove: Loaded GloVe embeddings
+        idf_scores: Dictionary mapping words to IDF scores
+
+    Returns:
+        np.ndarray of shape (1, 100) - TF-IDF weighted sum of word embeddings
+        None if no words have embeddings (zero-match exclusion)
+    """
+    words = process_text_to_words(headline)
+
+    weighted_embeddings = []
+    total_weight = 0.0
+
+    for word in words:
+        vec = glove.get_vector(word)
+        if vec is not None:
+            idf = idf_scores.get(word, 1.0)
+            weighted_embeddings.append(vec * idf)
+            total_weight += idf
+
+    if len(weighted_embeddings) == 0:
+        return None
+
+    weighted_sum = np.sum(weighted_embeddings, axis=0)
+
+    if total_weight > 0:
+        normalized_vector = weighted_sum / total_weight
+    else:
+        normalized_vector = weighted_sum
+
+    return normalized_vector[np.newaxis, :]
+
+
+def extract_features_glove_tfidf_batch(
+    headlines: List[str],
+    glove: GloVeEmbeddings,
+    idf_scores: dict
+) -> Tuple[np.ndarray, List[int]]:
+    """Extract TF-IDF weighted features for multiple headlines.
+
+    Args:
+        headlines: List of headline strings
+        glove: Loaded GloVe embeddings
+        idf_scores: Dictionary mapping words to IDF scores
+
+    Returns:
+        Tuple of (features, excluded_indices)
+        - features: np.ndarray of shape (N, 100) where N <= len(headlines)
+        - excluded_indices: List of indices of headlines that were excluded
+    """
+    features_list = []
+    excluded_indices = []
+
+    for i, headline in enumerate(headlines):
+        feature = extract_features_glove_tfidf(headline, glove, idf_scores)
+        if feature is not None:
+            features_list.append(feature[0])
+        else:
+            excluded_indices.append(i)
+
+    if len(features_list) == 0:
+        return np.zeros((0, 100), dtype=np.float32), excluded_indices
+
+    features = np.array(features_list, dtype=np.float32)
+    return features, excluded_indices
+
+
 def compute_coverage(
     headline: str,
     glove: GloVeEmbeddings

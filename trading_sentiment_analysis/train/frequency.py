@@ -43,7 +43,7 @@ def build_freqs_docs(texts, labels, word_processor=process_text_to_words):
     N = len(texts)
 
     for text, label in zip(texts, labels):
-        words = process_text_to_words(text)
+        words = word_processor(text)
         unique_words = set(words)  # **Set to count once per doc**
         for word in unique_words:
             doc_freqs[word] += 1
